@@ -1,0 +1,20 @@
+
+#gantt_here {
+    height: 80%;
+    min-width: 150px;
+}
+@media(min-height: 400px) {
+    #gantt_here {
+        height: 230px;
+    }
+}
+@media(min-height: 500px) {
+    #gantt_here {
+        height: 330px;
+    }
+}
+@media(min-height: 700px) {
+    #gantt_here {
+        height: 570px;
+    }
+}

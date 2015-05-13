@@ -1,0 +1,95 @@
+<!-- build.xml -->
+<project name="SCSIM" default="build" basedir=".">
+  <property name="dir.docs" value="${basedir}/docs" />
+  <property name="dir.src" value="${basedir}" />
+  <property name="dir.webdoc" value="/var/www/doc.scsim-phoenix.de" />
+  <property name="dir.webdev" value="/var/www/dev.scsim-phoenix.de" />
+  <property name="sql.driver" value="com.mysql.jdbc.Driver"/>
+  <property name="sql.url" value="jdbc:mysql://localhost/scsimdev"/>
+  <property name="sql.user" value="jenkins"/>
+  <property name="sql.pass" value="jenkins"/>
+  
+  <path id="antclasspath"> 
+    <fileset dir="/usr/share/java/"> 
+        <include name="mysql-connector-java.jar"/> 
+    </fileset> 
+  </path> 
+	
+	<target name="clean">
+        <delete dir="${dir.docs}"/>
+    </target>
+	
+	<target name="prepare">
+        <mkdir dir="${dir.docs}"/>
+    </target>
+	
+	<target name="copydoc">
+		<delete>
+			<fileset dir="${dir.webdoc}">
+				<include name="*"/>
+			</fileset>
+		</delete>
+		<copydir src="${dir.docs}"
+				 dest="${dir.webdoc}"
+		/>
+    </target>
+	
+	<target name="copydev">
+		<delete>
+			<fileset dir="${dir.webdev}">
+				<include name="*"/>
+			</fileset>
+		</delete>
+		<copydir src="${basedir}"
+				 dest="${dir.webdev}"
+		/>
+		<delete failonerror="false">
+			<fileset dir="${dir.webdev}/.svn">
+				<include name="*"/>
+			</fileset>
+		</delete>
+		<delete>
+			<fileset dir="${dir.webdev}/docs">
+				<include name="*"/>
+			</fileset>
+		</delete>
+		<delete>
+			<fileset dir="${dir.webdev}/doku">
+				<include name="*"/>
+			</fileset>
+		</delete>
+		<delete failonerror="false">
+			<fileset dir="${dir.webdev}/protected/config/main.php">
+				<include name="*"/>
+			</fileset>
+		</delete>
+		<rename src="${dir.webdev}/protected/config/devmain.php" dest="${dir.webdev}/protected/config/main.php"/>
+		<mkdir dir="${dir.webdev}/assets"/>
+		<chmod dir="${dir.webdev}/assets" perm="0777"/>
+		<chmod dir="${dir.webdev}/protected/runtime" perm="0777"/>
+	</target>
+	
+	<target name="phpdoc">
+    <exec dir="${basedir}" executable="phpdoc" failonerror="true">
+        <arg line="-t '${dir.docs}'
+                   --directory '${dir.src}'
+                   --title 'SCSIM'
+                   --parseprivate
+				   --ignore '${dir.src}/protected/extensions/*'
+				   --ignore '${dir.src}/tests/*'
+				   --ignore '${dir.src}/runtime/*'"
+				   />
+    </exec>
+	</target>
+	
+	<target name="createdevtables">
+	<sql driver="${sql.driver}" url="${sql.url}" userid="${sql.user}" 
+		password="${sql.pass}" classpathref="antclasspath" >
+	<transaction src="${basedir}\protected\data\scsim.sql"/>
+	</sql>
+	</target>
+	
+	<target name="build" depends="clean, prepare, phpdoc, copydoc, createdevtables, copydev"> </target> 
+ 
+</project>
+

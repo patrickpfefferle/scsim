@@ -1,0 +1,124 @@
+div.container {
+    border: 1px solid white;
+    position: relative;
+    left: 2px;
+    width: 4600px;
+    margin: 2 auto;
+
+}
+
+div.line {
+    border: 1px solid white;
+    display: inline-block;
+    vertical-align: top;
+    margin-bottom: 5px;
+    height: 50px;
+}
+
+div.machine {
+    border: 1px solid white;
+    float: left;
+    height: 50px;
+    background-color: aliceblue;
+    text-align: left;
+    line-height: 50px;
+    width: 250px;
+}
+
+div.topminutes {
+    border: 1px solid aliceblue;
+    float: left;
+    height: 25px;
+    background-color: aliceblue;
+    text-align: center;
+    line-height: 25px;
+    width: 250px;
+    font-weight: bold;
+
+}
+
+div.topruler {
+    border: 1px solid white;
+    float: left;
+    height: 25px;
+    background-color: white;
+    text-align: center;
+    line-height: 25px;
+    width: 250px;
+    font-weight: bold;
+}
+
+div.po_time {
+    float: left;
+    height: 50px;
+    line-height: 16px;
+    text-align: center;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border: 1px solid darkgreen;
+    background: green;
+    margin: 0px;
+
+    font-size: 9px;
+
+}
+
+div.idle_time {
+    float: left;
+    height: 50px;
+    line-height: 50px;
+    min-width: 50px;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border: 1px solid white;
+    background: white;
+    margin: 0px;
+
+}
+
+div.headline {
+    border: thin solid white;
+    display: inline-block;
+    vertical-align: top;
+    margin-bottom: 5px;
+    height: 25px;
+    background-color: lightgray;
+}
+
+div.head-minutes {
+
+    float: left;
+    height: 25px;
+    width: 45px;
+    line-height: 25px;
+    text-align: center;
+    font-size: 10px;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border: 1px solid grey;
+    background: lightgray;
+    margin: 0px;
+}
+
+div.head-hours {
+
+    float: left;
+    height: 25px;
+    width: 180px;
+    line-height: 25px;
+    text-align: center;
+    font-size: 10px;
+
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border: 1px solid grey;
+    background: lightgray;
+    margin: 0px;
+}
