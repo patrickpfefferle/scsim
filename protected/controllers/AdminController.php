@@ -60,6 +60,152 @@ class AdminController extends Controller
 
     }
 
+    public function actionUpload()
+    {
+        Yii::beginProfile('Upload JSON');
+        $model = new File;
+        if (isset($_POST['File'])) {
+
+            $model->attributes = $_POST['File'];
+            $model->inputFile = CUploadedFile::getInstance($model, 'inputFile');
+            if ($model->validate()) {
+                $plain_path = realpath(Yii::app()->request->baseUrl . 'sim_data');
+                $path = $plain_path . '/' . 'simulation_input_data_group_' . Yii::app()->user->getChoosedGroup() . '.txt';
+                $model->inputFile->saveAs($path);
+                $content = file_get_contents($path);
+                unlink($path);
+                $decoded_content = json_decode(utf8_encode($content), true);
+
+                $errorcode = json_last_error();
+                switch ($errorcode) {
+                    case JSON_ERROR_DEPTH:
+                        Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', 'Maximum stack depth exceeded'));
+                        $this->render('upload', array('model' => $model));
+                        return;
+                        break;
+                    case JSON_ERROR_CTRL_CHAR:
+                        Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', 'Unexcepted control character found in your JSON'));
+                        $this->render('upload', array('model' => $model));
+                        return;
+                        break;
+                    case JSON_ERROR_SYNTAX:
+                        Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', 'Syntax error, your JSON is invalid'));
+                        $this->render('upload', array('model' => $model));
+                        return;
+                        break;
+                    case JSON_ERROR_UTF8:
+                        Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', 'UTF-8 encoding error in your JSON'));
+                        $this->render('upload', array('model' => $model));
+                        return;
+                        break;
+                    case JSON_ERROR_STATE_MISMATCH:
+                        Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', 'Error in JSON. State mismatch'));
+                        $this->render('upload', array('model' => $model));
+                        return;
+                        break;
+                    case JSON_ERROR_NONE:
+                        break;
+                }
+                if ($errorcode > 0) {
+                    Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', 'Unknown JSON error'));
+                    $this->render('upload', array('model' => $model));
+                    return;
+                }
+
+
+                if ($decoded_content['type'] == 'simulation_input_data') {
+
+                    $orders = array();
+
+                    foreach ($decoded_content['orders'] as $decoded_order) {
+
+
+                        $order = new Order();
+                        $order->amount = $decoded_order['amount'];
+                        $order->order_type = $decoded_order['order_type'];
+                        $order->cd_product_id = $decoded_order['product_number'];
+                        $orders[] = $order;
+                    }
+
+                    $errors = Yii::app()->order->newOrderInput($orders);
+
+                    if (!empty($errors)) {
+                        foreach ($errors as $error) {
+                            foreach ($error as $e) {
+                                Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', $e));
+                            }
+
+                        }
+                    }
+
+                    $productionOrders = array();
+
+                    foreach ($decoded_content['production_orders'] as $decoded_production_order) {
+                        $productionOrder = new ProductionOrder();
+                        $productionOrder->cd_product_id = $decoded_production_order['product_number'];
+                        $productionOrder->amount = $decoded_production_order['amount'];
+                        $productionOrders[] = $productionOrder;
+
+                    }
+
+                    $errors = Yii::app()->productionOrder->newProductionOrderInput($productionOrders);
+
+                    if (!empty($errors)) {
+                        foreach ($errors as $error) {
+                            foreach ($error as $e) {
+                                Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', $e));
+                            }
+
+                        }
+                    }
+
+                    $shiftSchedulings = array();
+
+                    foreach ($decoded_content['shift_schedulings'] as $decoded_shift_scheduling) {
+
+
+                        $shiftScheduling = new ShiftScheduling();
+
+                        $shiftScheduling->shift_amount = $decoded_shift_scheduling['shift_amount'];
+                        $shiftScheduling->overtime = $decoded_shift_scheduling['overtime'];
+                        $machine = CdMachine::model()->findByAttributes(array('ident' => $decoded_shift_scheduling['machine_ident'], 'cd_gameset_id' => Yii::app()->user->GameSet));
+                        if (!empty($machine)) {
+
+                            $shiftScheduling->cd_machine_id = $machine->id;
+                        } else {
+                            $shiftScheduling->cd_machine_id = $decoded_shift_scheduling['machine_ident'];
+                        }
+
+
+                        $shiftSchedulings[] = $shiftScheduling;
+                    }
+
+                    $errors = Yii::app()->shiftScheduling->newShiftSchedulingInput($shiftSchedulings);
+
+                    if (!empty($errors)) {
+                        foreach ($errors as $error) {
+                            foreach ($error as $e) {
+                                Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', $e));
+                            }
+
+                        }
+                    }
+
+
+                } else {
+                    Yii::app()->user->setFlash(TbHtml::ALERT_COLOR_ERROR, Yii::t('app', 'No simluation input data found!'));
+                }
+
+                if (empty($errors)) {
+                    $this->redirect(array('simulation/ajaxsimulate'));
+                }
+            }
+        }
+        Yii::endProfile('Upload JSON');
+        $this->render('upload', array('model' => $model));
+    }
+
+    
     public function actionUserdelete($id)
     {
         $user = User::model()->findByPk($id);
